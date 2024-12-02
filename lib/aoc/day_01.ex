@@ -12,19 +12,15 @@ defmodule AoC.Day01 do
 
   def part2(input) do
     [l1, l2] = parse_input(input)
-
-    Enum.reduce(l1, 0, fn x, acc ->
-      acc + x * Enum.count(l2, fn y -> x == y end)
-    end)
+    Enum.reduce(l1, 0, fn x, acc -> acc + x * Enum.count(l2, &(&1 == x)) end)
   end
 
   def parse_input(input) do
     input
     |> String.split(["\n", " "], trim: true)
+    |> Enum.map(&String.to_integer/1)
     |> Enum.chunk_every(2)
     |> Enum.zip()
-    |> Enum.map(fn list ->
-      list |> Tuple.to_list() |> Enum.map(&String.to_integer/1)
-    end)
+    |> Enum.map(&Tuple.to_list/1)
   end
 end
