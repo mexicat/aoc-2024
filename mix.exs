@@ -24,7 +24,8 @@ defmodule AoC.MixProject do
       {:benchee, "~> 1.3.1"},
       {:httpoison, "~> 2.2.1"},
       {:libgraph, "~> 0.16.0"},
-      {:flow, "~> 1.2.4"}
+      {:flow, "~> 1.2.4"},
+      {:formulae, "~> 0.17.0"}
     ]
   end
 end
