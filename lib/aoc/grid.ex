@@ -2,9 +2,11 @@ defmodule AoC.Grid do
   @type mapgrid() :: %{{non_neg_integer(), non_neg_integer()} => atom()}
   @type mapsetgrid() :: MapSet.t({non_neg_integer(), non_neg_integer()})
 
+  @dirs [{0, -1}, {0, 1}, {-1, 0}, {1, 0}]
+
   @spec parse_grid_to_map(String.t(), [String.t(), ...] | []) ::
           {mapgrid(), non_neg_integer(), non_neg_integer()}
-  def parse_grid_to_map(input, exclude \\ []) do
+  def parse_grid_to_map(input, exclude \\ [], cast \\ &String.to_atom/1) do
     {grid, max_x, max_y} =
       input
       |> String.trim()
@@ -12,7 +14,7 @@ defmodule AoC.Grid do
       |> Enum.reduce({%{}, 0, 0}, fn c, {acc, x, y} ->
         cond do
           c == "\n" -> {acc, 0, y + 1}
-          c not in exclude -> {Map.put(acc, {x, y}, String.to_atom(c)), x + 1, y}
+          c not in exclude -> {Map.put(acc, {x, y}, cast.(c)), x + 1, y}
           true -> {acc, x + 1, y}
         end
       end)
@@ -35,6 +37,15 @@ defmodule AoC.Grid do
       |> elem(0)
 
     {grid, max_x - 1, max_y}
+  end
+
+  def neighbors(grid, {x, y}) do
+    @dirs
+    |> Enum.map(fn {dx, dy} ->
+      nb = {x + dx, y + dy}
+      {nb, Map.get(grid, nb)}
+    end)
+    |> Enum.reject(fn {_, v} -> is_nil(v) end)
   end
 
   @spec visualize(mapgrid()) :: mapgrid()
