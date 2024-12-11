@@ -18,31 +18,32 @@ defmodule AoC.Day11 do
 
   def blink([], acc), do: acc
 
-  def blink([{"0", n} | rest], acc) do
-    blink(rest, Map.update(acc, "1", n, &(&1 + n)))
-  end
-
-  def blink([{x, n} | rest], acc) when x |> byte_size() |> rem(2) == 0 do
-    {a, b} = x |> String.split_at(byte_size(x) |> div(2))
-
-    b =
-      case String.trim_leading(b, "0") do
-        "" -> "0"
-        x -> x
-      end
-
-    blink(rest, acc |> Map.update(a, n, &(&1 + n)) |> Map.update(b, n, &(&1 + n)))
+  def blink([{0, n} | rest], acc) do
+    blink(rest, Map.update(acc, 1, n, &(&1 + n)))
   end
 
   def blink([{x, n} | rest], acc) do
-    x = x |> String.to_integer() |> Kernel.*(2024) |> Integer.to_string()
+    digits = Integer.digits(x)
 
-    blink(rest, Map.update(acc, x, n, &(&1 + n)))
+    case rem(Enum.count(digits), 2) do
+      0 ->
+        {a, b} = Enum.split(digits, div(Enum.count(digits), 2))
+
+        acc =
+          acc
+          |> Map.update(Integer.undigits(a), n, &(&1 + n))
+          |> Map.update(Integer.undigits(b), n, &(&1 + n))
+
+        blink(rest, acc)
+
+      1 ->
+        blink(rest, Map.update(acc, x * 2024, n, &(&1 + n)))
+    end
   end
 
   def parse_input(input) do
     input
     |> String.split([" ", "\n"], trim: true)
-    |> Enum.reduce(%{}, fn x, acc -> Map.update(acc, x, 1, &(&1 + 1)) end)
+    |> Enum.reduce(%{}, fn x, acc -> Map.update(acc, String.to_integer(x), 1, &(&1 + 1)) end)
   end
 end
