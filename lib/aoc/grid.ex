@@ -26,6 +26,7 @@ defmodule AoC.Grid do
   def parse_grid_to_mapset(input, exclude \\ []) do
     {grid, max_x, max_y} =
       input
+      |> String.trim()
       |> String.codepoints()
       |> Enum.reduce({MapSet.new(), 0, 0}, fn c, {acc, x, y} ->
         cond do
@@ -34,12 +35,11 @@ defmodule AoC.Grid do
           true -> {acc, x + 1, y}
         end
       end)
-      |> elem(0)
 
     {grid, max_x - 1, max_y}
   end
 
-  def neighbors(grid, {x, y}) do
+  def neighbors(grid, {x, y}) when is_non_struct_map(grid) do
     @dirs
     |> Enum.map(fn {dx, dy} ->
       nb = {x + dx, y + dy}
@@ -48,14 +48,45 @@ defmodule AoC.Grid do
     |> Enum.reject(fn {_, v} -> is_nil(v) end)
   end
 
+  def neighbors(grid, {x, y}) do
+    @dirs
+    |> Enum.map(fn {dx, dy} ->
+      nb = {x + dx, y + dy}
+      {nb, MapSet.member?(grid, nb)}
+    end)
+    |> Enum.reject(fn {_, v} -> not v end)
+    |> Enum.map(fn {nb, _} -> nb end)
+  end
+
   @spec visualize(mapgrid()) :: mapgrid()
-  def visualize(grid, max_x \\ nil, max_y \\ nil) when is_map(grid) do
+  def visualize(grid, max_x \\ nil, max_y \\ nil)
+
+  def visualize(grid, max_x, max_y) when is_non_struct_map(grid) do
     max_x = max_x || grid |> Map.keys() |> Enum.map(&elem(&1, 0)) |> Enum.max()
     max_y = max_y || grid |> Map.keys() |> Enum.map(&elem(&1, 1)) |> Enum.max()
 
     for y <- 0..max_y do
       for x <- 0..max_x do
-        Map.get(grid, {x, y}, ".")
+        Map.get(grid, {x, y}, "#")
+      end
+      |> Enum.join()
+    end
+    |> Enum.join("\n")
+    |> IO.puts()
+
+    grid
+  end
+
+  def visualize(grid, max_x, max_y) do
+    max_x = max_x || grid |> Enum.map(&elem(&1, 0)) |> Enum.max()
+    max_y = max_y || grid |> Enum.map(&elem(&1, 1)) |> Enum.max()
+
+    for y <- 0..max_y do
+      for x <- 0..max_x do
+        case MapSet.member?(grid, {x, y}) do
+          true -> "#"
+          false -> "."
+        end
       end
       |> Enum.join()
     end
